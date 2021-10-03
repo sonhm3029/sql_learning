@@ -1,5 +1,21 @@
 # TỰ HỌC SQL
 
+[I. SQL SELECT](#i-sql-select)
+
+[II. SQL WHERE, AND, OR, NOT](#ii-sql-where-and-or-not)
+
+[III. SQL ORDER BY](#iii-sql-order-by)
+
+[IV. UPDATE](#iv-update)
+
+[V. DELETE](#v-delete)
+
+[VI. SELECT TOP](#vi-select-top)
+
+[VII. SELECT MIN, MAX](#vii-select-min-max)
+
+[VIII. COUNT(), AVG(), SUM() Functions](#viii-count-avg-sum-functions)
+
 ## I. SQL SELECT
 
 `SELECT` dùng để select data từ database.
@@ -206,3 +222,274 @@ Dùng để xóa record khỏi table
 ```
 
 Nếu như bỏ qua `WHERE` sẽ xóa tất cả record khỏi table mà không xóa table
+
+## VI. SELECT TOP
+
+`SELECT TOP` dùng để specify số lượng records sẽ lấy ra.
+
+Khôn phải tất cả databases đều support `SELECT TOP`
+
+**SQL server / MS Access Syntax:**
+
+```SQL
+    SELECT TOP number|percent column_name(s)
+    FROM table_name
+    WHERE condition;
+```
+
+**MySQL Syntax:**
+
+```SQL
+    SELECT column_name(s)
+    FROM table_name
+    WHERE condition
+    LIMIT number;
+```
+
+**Oracle 12 Syntax:**
+
+```SQL
+    SELECT column_name(s)
+    FROM table_name
+    ORDER BY column_name(s)
+    FETCH FIRST number ROWS ONLY;
+```
+
+**Older Oracle Syntax (with ORDER BY):**
+
+```SQL
+    SELECT *
+    FROM (SELECT column_name(s) FROM table_name ORDER   BY column_name(s))
+    WHERE ROWNUM <= number;
+```
+
+**Ví dụ:**
+
+```SQL
+    SELECT TOP 3 * FROM Customers;
+```
+
+Lấy ra 3 record đầu tiên từ Customers
+
+Với MySQL
+
+```SQL
+    SELECT * FROM Customers;
+    LIMIT 3;
+```
+
+`SELECT TOP` bằng percent với SQL Server/MS Access
+
+```SQL
+    SELECT TOP 50 PERCENT * FROM Customers;
+```
+
+Chọn ra 1/2 số bản ghi đầu tiên của table
+
+Với Oracle
+
+```SQL
+    SELECT * FROM Customers
+    FETCH FIRST 50 PERCENT ROWS ONLY;
+```
+
+Ví dụ kết hợp với `WHERE`
+
+```SQL
+    SELECT TOP 3 * FROM Customers
+    WHERE Country = 'Viet Nam'
+```
+
+Chọn ra 3 bản ghi đầu tiên có trường `Country = Viet Nam`
+
+## VII. SELECT MIN, MAX
+
+`MIN(), MAX()` dùng để lấy ra giá trị nhỏ nhất trong trường được chọn.
+
+**Syntax:**
+
+```SQL
+    SELECT MIN|MAX(column_name)
+    FROM table_name
+    WHERE condition;
+```
+
+**Ví dụ:**
+
+```SQL
+    SELECT MAX(Price) AS LargestPrice
+    FROM Products;
+```
+
+Lấy ra giá trị lớn nhất của trường `Price` và sau đó gán cho `LargestPrice` rồi hiển thị ra.
+
+## VIII. COUNT(), AVG(), SUM() Functions
+
+- `COUNT()` trả về số record match với điều kiện.
+- `SUM()` trả về tổng giá trị của record ứng với trường
+
+- `AVG()` trả về trung bình cộng giá trị của record ứng với trường.
+
+**Syntax:**
+
+```SQL
+    SELECT COUNT|SUM|AVG(column_name)
+    FROM table_name
+    WHERE condition;
+```
+
+Ví dụ:
+
+```SQL
+    SELECT COUNT(ProductID)
+    FROM Products;
+```
+
+Đếm số record có giá trị `ProductID` khác `NULL`
+
+```SQL
+    SELECT AVG|SUM(Price)
+    FROM Products;
+```
+
+Tính giá trị trung bình hoặc tổng trong trường `Price`, bỏ qua các giá trị NULL.
+
+## IX. LIKE
+
+Sử dụng `LIKE` kết hợp với `WHERE` để lọc dữ liệu.
+
+`LIKE` thường đi với các operator:
+
+- `%` để diễn tả thành phần của dữ liệu
+- `_` để biểu diễn cho 1 kí tự, do đó `__` là 2 kí tự...
+
+**Chú ý: MS Access sử dụng `*` thay cho `%` và `?` thay cho `_`**
+
+**`LIKE` Syntax:**
+
+```SQL
+    SELECT column1, column2, ...
+    FROM table_name
+    WHERE columnn LIKE pattern;
+```
+
+Cách sử dụng LIKE với các operator:
+
+LIKE Operator | Description
+--------------|------------
+WHERE CustomerName LIKE 'a%' | Tìm record có giá trị trong trường bắt đầu bằng kí tự `a`
+WHERE CustomerName LIKE '%a' | Tìm record có giá trị trong trường kết thúc bằng kí tự `a`
+WHERE CustomerName LIKE '%or%' | Tìm các record mà trường có giá trị chứa `or`
+WHERE CustomerName LIKE '_r%' | Tìm các record mà trường có giá trị chứa `r` ở vị trí thứ 2
+WHERE CustomerName LIKE 'a_%' | Tìm các record mà trường có giá trị bắt đầu bằng `a` và có ít nhất 2 kí tự
+WHERE CustomerName LIKE 'a__%' | Tìm các record mà trường có giá trị bắt đầu bằng `a` và có ít nhất 3 kí tự
+WHERE ContactName LIKE 'a%o' | Tìm các record có giá trị trường bắt đầu bằng `a` và kết thúc bằng `o`
+
+## X. Wildcards
+
+Là các operator đi cùng với `LIKE`
+
+**Wildcards characters trong MS Access:**
+Symbol | Description | Example
+-------|-------------|--------
+`*` | Represents zero or more characters | bl* finds bl, black, blue, and blob
+`?` | Represents a single character | h?t finds hot, hat, and hit
+`[]` | Represents any single character within the brackets | h[oa]t finds hot and hat, but not hit
+`!` | Represents any character not in the brackets | h[!oa]t finds hit, but not hot and hat
+`-` | Represents any single character within the specified range | c[a-b]t finds cat and cbt
+`#` | Represents any single numeric character | 2#5 finds 205, 215, 225, 235, 245, 255, 265, 275, 285, and 295
+
+**Wildcards characters trong SQL Server:**
+
+Symbol | Description | Example
+-------|-------------|--------
+`%` | Represents zero or more characters | bl% finds bl, black, blue, and blob
+`_` | Represents a single character | h_t finds hot, hat, and hit
+`[]` | Represents any single character within the brackets | h[oa]t finds hot and hat, but not hit
+`^` | Represents any character not in the brackets | h[^oa]t finds hit, but not hot and hat
+`-`| Represents any single character within the specified range | c[a-b]t finds cat and cbt
+
+## XI. IN
+
+`IN` cho phép ta chọn nhiều giá trị trong `WHERE`, nói cách khác nó như là short hand của `OR`
+
+**Syntax:**
+
+```SQl
+    SELECT column_name(s)
+    FROM table_name
+    WHERE column_name IN (value1, value2, ...);
+```
+
+hoặc
+
+```SQL
+    SELECT column_name(s)
+    FROM table_name
+    WHERE column_name IN (SELECT STATEMENT);
+```
+
+**Ví dụ:**
+
+```SQL
+    SELECT * FROM Customers
+    WHERE Country IN|NOT IN ('Germany', 'France', 'UK');
+```
+
+Chọn ra các record có trường `Country` có giá trị( hoặc ngoài các giá trị) `Germany hoặc France, hoặc UK`.
+
+```SQL
+    SELECT * FROM Customers
+    WHERE Country IN (SELECT Country FROM Suppliers);
+```
+
+Chọn ra các record từ `Customers` table có trường `Country` có các giá trị mà trường `Country` trong `Suppliers` table có.
+
+## XII. BETWEEN
+
+`BETWEEN` + `AND` để chọn ra các record có giá trị trường nằm trong một khoảng nào đó, bao gồm kiểu `numbers`, `text`, `date`
+
+**Syntax:**
+
+```SQL
+    SELECT column_name(s)
+    FROM table_name
+    WHERE column_name BETWEEN value1 AND value2;
+```
+
+**Ví dụ:**
+
+```SQL
+    SELECT * FROM Products
+    WHERE Price NOT BETWEEN 10 AND 20;
+```
+
+```SQL
+    SELECT * FROM Products
+    WHERE ProductName BETWEEN 'Carnarvon Tigers' AND 'Mozzarella di Giovanni'
+    ORDER BY ProductName;
+```
+
+Sẽ chọn ra các record có `ProductName` nằm trong khoảng từ `Carnarvon Tigers` đến `Mozzarella di Giovanni` theo thứ tự Alphabet rồi sau đó hiển thị ra theo thứ tự Alphabet luôn
+
+```SQL
+    SELECT * FROM Products
+    WHERE ProductName NOT BETWEEN 'Carnarvon Tigers' AND 'Mozzarella di Giovanni'
+    ORDER BY ProductName;
+```
+
+Như ví dụ trên nhưng là chọn ngoài khoảng.
+
+**Ví dụ với Date:**
+
+```SQL
+    SELECT * FROM Orders
+    WHERE OrderDate BETWEEN #07/01/1996# AND #07/31/1996#;
+```
+
+hoặc
+
+```SQL
+    SELECT * FROM Orders
+    WHERE OrderDate BETWEEN '1996-07-01' AND '1996-07-31';
+```
