@@ -647,7 +647,7 @@ Nhận xét kết quả trên giống với dòng lệnh sau:
 
 **Ta rút ra các loại JOINS trong SQL:**
 
-- `JOIN`: **inner** - trả về các record từ hai bảng có chung value nào đó
+- `INNER JOIN`: **inner** - trả về các record từ hai bảng có chung value nào đó
 
 - `LEFT JOIN`: **outer**- trả về tất cả các record từ bảng trái và các record chung của hai bảng.
 
@@ -959,4 +959,281 @@ Kết quả:
 ![exists](img/exists.png)
 
 ## XX. Any,All
+
+`ANY` và `ALL` dùng để so sánh parameter A với parameter B( là một mảng/ chuỗi các giá trị khác)
+
+**Syntax:**
+
+```SQL
+    SELECT column_name(s)
+    FROM table_name
+    WHERE column_name operator ANY
+    (SELECT column_name
+    FROM table_name
+    WHERE condition);
+```
+
+Trong đó operator là `(=, <>, !=, >, >=, <, or <=)`
+
+Ta hiểu như sau: coi khối
+
+```SQL
+    SELECT column_name(s)
+    FROM table_name
+```
+
+là `column1`. Khối query trong () sẽ trả về một dãy các kết quả là `column2`. Vậy
+
+```SQL
+    column1
+    WHERE coulumn_name operator ANY(column2)
+```
+
+Sẽ trả về `TRUE` nếu có ít nhất 1 kết quả trong column2 match với column1 thỏa mãn `WHERE` condition.
+
+**Ví dụ:**
+
+```SQL
+    SELECT ProductName
+    FROM Products
+    WHERE ProductID = ANY
+        (SELECT ProductID
+        FROM OrderDetails
+        WHERE Quantity = 10);
+```
+
+Ở đây đầu tiên subquery sẽ lọc ra các `ProductID` thỏa mãn `Quantity = 10`, sau đó sẽ xét lần lượt các kết quả của query ngoài (). Nếu có kết quả nào matched (`ProductID = ...`) thì nó sẽ hiển thị ra `ProductName`.
+
+![any_1](img/any_1.png)
+
+Giả sử subquery trả về các kết quả (1,3,4,2,5). Thì cả câu lệnh trên tương đương với:
+
+```SQL
+    SELECT ProductName
+    FROM Products
+    WHERE ProductID IN(1,3,4,2,5);
+```
+
+Nếu sửa đoạn code trên với subquery có `Quantity > 1000`. Thì sẽ return `FALSE` vì không có `Quantity` nào > 1000.
+
+### Đối với `ALL`
+
+```SQL
+    SELECT ALL column_name(s)
+    FROM table_name
+    WHERE condition;
+```
+
+Sử dụng `WHERE` hoặc HAVING với Subquery:
+
+```SQL
+    SELECT column_name(s)
+    FROM table_name
+    WHERE column_name operator ALL
+        (SELECT column_name
+        FROM table_name
+        WHERE condition);
+```
+
+**Xét ví dụ:**
+
+```SQL
+    SELECT ProductName
+    FROM Products
+    WHERE ProductID = ALL
+        (SELECT ProductID
+        FROM OrderDetails
+        WHERE Quantity = 10);
+```
+
+Câu lệnh trên sẽ trả về `FALSE` vì. Giả sử subquery trả về (1,3,2,5,6) thì có nghĩa là kết quả cần trả về phải có `ProductID = 1 &&ProductID=2 && ProductID = 3...` => Vô lý.
+
+Nếu subquery trả về chỉ 1 giá trị. Ví dụ là `3` Tức là kết quả sẽ trả `ProductName` của tất cả các bản ghi mà có `ProductID` thỏa mãn = 3.
+
+Tham khảo trang sau: [SQL Tutorial](https://www.sqltutorial.org/sql-all/)
+
+## XXI. SELECT INTO
+
+`SELECT INTO` dùng để copy data từ bảng này sang bảng khác
+
+**Syntax:**
+
+Copy toàn bộ bảng cũ sang bảng mới
+
+```SQL
+    SELECT *
+    INTO newtable [IN externaldb]
+    FROM oldtable
+    WHERE condition;
+```
+
+Copy một số cột từ bảng cũ sang bảng mới
+
+```SQL
+    SELECT column1, column2, column3, ...
+    INTO newtable [IN externaldb]
+    FROM oldtable
+    WHERE condition;
+```
+
+Có thể thay đổi tên cột của bảng mới bằng cách dùng `AS`.
+
+Sử dụng `IN database_khac` để copy bảng sang database khác.
+
+**Ví dụ:**
+
+```SQL
+    SELECT * INTO CustomersBackup2017
+    FROM Customers;
+```
+
+Copy toàn bộ data từ bảng `Customers` cũ sang bảng `CustomersBackup2017`
+
+```SQL
+    SELECT * INTO CustomersBackup2017 IN 'Backup.mdb'
+    FROM Customers;
+```
+
+Copy sang database khác.
+
+```SQL
+    SELECT CustomerName, ContactName INTO CustomersBackup2017
+    FROM Customers;
+```
+
+Copy một số cột sang bảng mới
+
+```SQL
+    SELECT * INTO CustomersGermany
+    FROM Customers
+    WHERE Country = 'Germany';
+```
+
+Copy các bản ghi có `Country = 'Germant'` Sang bảng mới.
+
+```SQL
+    SELECT Customers.CustomerName, Orders.OrderID
+    INTO CustomersOrderBackup2017
+    FROM Customers
+    LEFT JOIN Orders ON Customers.CustomerID = Orders.CustomerID;
+```
+
+Copy data từ 2 bảng sang một bảng mới.
+
+## XXII. INSERT INTO SELECT
+
+Copy data từ bảng này rồi insert vào bảng khác.
+
+**Syntax:**
+
+Copy tất cả column từ bảng 1 rồi insert vào bảng 2.
+
+```SQL
+    INSERT INTO table2
+    SELECT * FROM table1
+    WHERE condition;
+```
+
+Copy một số cột từ bảng 1 rồi insert vào bảng 2.
+
+```SQL
+    INSERT INTO table2 (column1, column2, column3, ...)
+    SELECT column1, column2, column3, ...
+    FROM table1
+    WHERE condition;
+```
+
+**Ví dụ:**
+
+```SQl
+    INSERT INTO Customers (CustomerName, City, Country)
+    SELECT SupplierName, City, Country FROM Suppliers;
+```
+
+Kết quả:
+
+Bảng ban đầu:
+
+![insert_into_1](img/insert_into_1.png)
+
+Sau khi insert:
+
+![insert_into_2](img/insert_into_2.png)
+
+Ta thấy những cột không được copy và insert thì sẽ mang giá trị `null` hay là trống:
+
+![insert_into_3](img/insert_into_3.png)
+
+Chú ý, các cột insert từ bảng này sang bảng kia phải cùng số lượng, và data của các cột phải cùng loại.
+
+Ví dụ nếu ta có câu lệnh:
+
+```SQL
+    INSERT INTO Suppliers 
+    SELECT * FROM Customers;
+```
+
+Trường hợp số cột bẳng nhau và data trong các cột của hai bảng lần lượt giống nhau thì sẽ insert bình thường.
+
+Trường hợp số cột khác nhau ví dụ bên bảng `Suppliers` có 7 cột, `Customers` có 8 thì sẽ không insert được.
+
+Trường hợp ít nhất một trong các cột insert không cùng loại data thì cũng sẽ không insert được.
+
+Ví dụ với `WHERE`:
+
+```SQL
+    INSERT INTO Customers (CustomerName, City, Country)
+    SELECT SupplierName, City, Country FROM Suppliers
+    WHERE Country='Germany';
+
+```
+
+## XXIII. SQL CASE STATEMENT
+
+**Syntax:**
+
+```SQL
+    CASE
+        WHEN condition1 THEN result1
+        WHEN condition2 THEN result2
+        WHEN conditionN THEN resultN
+        ELSE result
+    END;
+```
+
+Với `CASE` statement các `condition` sẽ được xét từ trên xuống. Nếu có `condition` nào thỏa mãn thì result tương ứng sẽ được thục hiện và kết thúc. Nếu không có `condition` nào thỏa mãn thì result tương ướng với `ELSE` sẽ được thực hiện. Nếu không có `ELSE` thì kết quả trả về sẽ là `NULL`.
+
+**Ví dụ:**
+
+```SQL
+    SELECT OrderID, Quantity,
+    CASE
+        WHEN Quantity > 30 THEN 'The quantity is greater than 30'
+        WHEN Quantity = 30 THEN 'The quantity is 30'
+        ELSE 'The quantity is under 30'
+    END AS QuantityText
+    FROM OrderDetails;
+```
+
+**Kết quả:**
+
+![case_1](img/case_1.png)
+
+**Ví dụ:**
+
+```SQL
+    SELECT CustomerName, City, Country
+    FROM Customers
+    ORDER BY
+    (CASE
+        WHEN City IS NULL THEN Country
+        ELSE City
+    END);
+```
+
+Kết quả:
+
+![case_2](img/case_2.png)
+
+## XXIV. NULL FUNCTION
 
