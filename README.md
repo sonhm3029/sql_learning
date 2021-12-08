@@ -38,6 +38,15 @@
 
 [XIX. EXISTS](#xix-exists)
 
+[XX. Any,All](#xx-any-,-all)
+
+[XXI. SELECT INTO](#xxi-select-into)
+
+[XXII. INSERT INTO SELECT](#xxii-insert-into-select)
+
+[XXIII. SQL CASE STATEMENT](#xxiii-sql-case-statement)
+
+
 ## I. SQL SELECT
 
 `SELECT` dùng để select data từ database.
