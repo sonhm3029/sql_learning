@@ -46,7 +46,6 @@
 
 [XXIII. SQL CASE STATEMENT](#xxiii-sql-case-statement)
 
-
 ## I. SQL SELECT
 
 `SELECT` dùng để select data từ database.
@@ -1245,4 +1244,3 @@ Kết quả:
 ![case_2](img/case_2.png)
 
 ## XXIV. NULL FUNCTION
-
