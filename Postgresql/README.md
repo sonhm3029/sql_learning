@@ -102,4 +102,81 @@ Trên psql shell:
 
 # PSQL COMMAND LINE
 
-## 1. 
+## Các tham số cơ bản:
+
+- `--h — --host=HOSTNAME` | database server host or socket directory (default: “local socket”)
+- `--p — --port=PORT` | database server port (default: “5432”)
+- `--U — --username=USERNAME` | database username (default: “your_username”)
+- `--w — --no-password` | never prompt for password
+- `--W — --password` | force password prompt (should happen automatically)
+
+
+## Câu lệnh để kết nối đến database thuộc quyền user nào đó:
+
+```psql
+psql -d tenDb -U tenUser
+```
+
+Mặc định với lệnh
+
+```cmd
+psql -U postgres
+```
+
+Sẽ truy cập đến database `postgres` thuộc quyền truy cập của superuser `postgres` (Do hệ thống tạo từ đâu)
+
+=> Kết quả nhận được là 
+
+```cmd
+postgres=#
+```
+
+Kết quả hiện thị trên command line với `postgres` là tên database đang truy cập và dấu `#` thể hiện user đang sử dụng là superuser.
+
+Nếu không phải superuser sẽ hiển thị như sau
+
+```cmd
+postgres=>
+```
+
+## Các command cơ bản
+
+Các command của `psql` thường đi với `\`. Ví dụ 
+
+```shell
+postgres=# \conninfo
+You are connected to database "postgres" as user "your_username" via socket in "/tmp" at port "5432".
+```
+
+Một số lệnh khác:
+
+- `\q` thoát khỏi psql 
+- `\c tenDB` kết nối với database nào đó
+- `\dt` xem tất cả các bảng hiện có trong database
+- `\du` xem tất cả các user hiện có
+- `\list` hoặc `\l` xem tất cả các database hiện có
+- `\d tenTable` hoặc `\d+ tenTable` để xem thông tin chi tiết bảng nào đó.
+## Lệnh setup user, db...
+
+### Tạo user mới
+
+```shell
+postgres=# CREATE ROLE me WITH LOGIN PASSWORD '123456789';
+```
+
+Tạo `user` tên là `me` với password để login là `123456789`
+
+Để user này có thể thực hiện các quyền (tạo table, tạo database, truy vấn....)
+
+```shell
+ALTER ROLE me CREATEDB;
+```
+
+hoặc có thể thêm các quyền cho user trong `pgAdmin`.
+
+Như vậy khi run `\du` sẽ có kêt quả:
+
+```cmd
+me          | Create DB                           | {}
+postgres    | Superuser, Create role, Create DB   | {}
+```
